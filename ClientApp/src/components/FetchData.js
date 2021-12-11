@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import authService from './api-authorization/AuthorizeService'
+import { get } from 'axios';
 
 export class FetchData extends Component {
   static displayName = FetchData.name;
@@ -54,10 +55,12 @@ export class FetchData extends Component {
 
   async populateWeatherData() {
     const token = await authService.getAccessToken();
-    const response = await fetch('weatherforecast', {
+    const response = await get('upload', {
       headers: !token ? {} : { 'Authorization': `Bearer ${token}` }
     });
-    const data = await response.json();
-    this.setState({ forecasts: data, loading: false });
+
+    console.log(response);
+
+    this.setState({ forecasts: response.data, loading: false });
   }
 }

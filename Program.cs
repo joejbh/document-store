@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using document_store.Data;
 using document_store.Models;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +22,21 @@ builder.Services.AddIdentityServer()
 builder.Services.AddAuthentication()
     .AddIdentityServerJwt();
 
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartBodyLengthLimit = int.MaxValue;
+    options.MemoryBufferThreshold = int.MaxValue;
+});
+
 builder.Services.AddControllersWithViews();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("cors", policy =>
+    {
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+    });
+});
 builder.Services.AddRazorPages();
 
 var app = builder.Build();
@@ -43,6 +59,14 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseIdentityServer();
 app.UseAuthorization();
+app.UseCors("cors");
+app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions()
+{
+    FileProvider = new PhysicalFileProvider
+  (Path.Combine(Directory.GetCurrentDirectory(), @"UploadedFiles")),
+    RequestPath = new PathString("/UploadedFiles")
+});
 
 app.MapControllerRoute(
     name: "default",
